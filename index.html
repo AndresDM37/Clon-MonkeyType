@@ -205,8 +205,8 @@
         <button id="time-50">50</button>
       </div>
       <div>
-        <button id="button-spanish">Ingles</button>
-        <button id="button-english">Español</button>
+        <button id="button-english">Ingles</button>
+        <button id="button-spanish">Español</button>
       </div>
       <p></p>
       <input autofocus />
@@ -239,7 +239,11 @@
     </section>
 
     <div class="iconGit">
-      <a href="" class="linkRepo"
+      <a
+        href="https://github.com/AndresDM37/Clon-MonkeyType"
+        class="linkRepo"
+        target="_blank"
+        noreferrer
         >Repositorio
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512">
           <path
@@ -273,7 +277,6 @@
   const INITIAL_TIME = 30;
 
   let words = [];
-  let wordsSpanish = [];
   let currentTime = INITIAL_TIME;
   let playing;
 
@@ -330,23 +333,17 @@
     $input.addEventListener("keydown", onKeyDown);
     $input.addEventListener("keyup", onKeyUp);
     $button.addEventListener("click", initGame);
+    $buttonEnglish.addEventListener("click", () => {
+      words = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(0, 45);
+      updateParagraph();
+    });
     $buttonSpanish.addEventListener("click", () => {
-      wordsSpanish = INITIAL_WORDS.toSorted(() => Math.random() - 0.5).slice(
+      words = INITIAL_WORDS_SPANISH.toSorted(() => Math.random() - 0.5).slice(
         0,
         45
       );
-      $paragraph.innerHTML = wordsSpanish
-        .map((word, index) => {
-          const letters = word.split("");
-
-          return `<word>
-          ${letters.map((letter) => `<letter>${letter}</letter>`).join("")}
-        </word>
-        `;
-        })
-        .join("");
+      updateParagraph();
     });
-    $buttonEnglish.addEventListener("click", initGame);
     $time15.addEventListener("click", () => changeTime(15));
     $time30.addEventListener("click", () => changeTime(30));
     $time45.addEventListener("click", () => changeTime(45));
@@ -355,6 +352,20 @@
     function changeTime(time) {
       currentTime = time;
       initGame();
+    }
+
+    function updateParagraph() {
+      $paragraph.innerHTML = words
+        .map((word) => {
+          const letters = word.split("");
+          return `<word>
+          ${letters.map((letter) => `<letter>${letter}</letter>`).join("")}
+        </word>`;
+        })
+        .join("");
+      const $firstWord = $paragraph.querySelector("word");
+      $firstWord.classList.add("active");
+      $firstWord.querySelector("letter").classList.add("active");;
     }
   }
 
