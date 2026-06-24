@@ -1,0 +1,153 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-mono);
+  --font-mono: var(--font-mono);
+
+  /* Typing-test specific palette (drives the game UI) */
+  --color-tt-bg: var(--tt-bg);
+  --color-tt-main: var(--tt-main);
+  --color-tt-text: var(--tt-text);
+  --color-tt-sub: var(--tt-sub);
+  --color-tt-error: var(--tt-error);
+  --color-tt-error-extra: var(--tt-error-extra);
+  --color-tt-caret: var(--tt-caret);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
+ * Each theme defines the `--tt-*` typing palette and remaps the relevant
+ * shadcn tokens so Button / ToggleGroup stay on-brand automatically.
+ */
+:root,
+.serika {
+  --tt-bg: #323437;
+  --tt-main: #e2b714;
+  --tt-text: #d1d0c5;
+  --tt-sub: #646669;
+  --tt-error: #ca4754;
+  --tt-error-extra: #7e2a33;
+  --tt-caret: #e2b714;
+  --radius: 0.625rem;
+}
+
+.light {
+  --tt-bg: #eef0f2;
+  --tt-main: #ad8701;
+  --tt-text: #2c2e31;
+  --tt-sub: #9499a0;
+  --tt-error: #c0303b;
+  --tt-error-extra: #e2a0a5;
+  --tt-caret: #2c2e31;
+}
+
+.dark {
+  --tt-bg: #111315;
+  --tt-main: #e6e6e6;
+  --tt-text: #f2f2f2;
+  --tt-sub: #555a60;
+  --tt-error: #ca4754;
+  --tt-error-extra: #7e2a33;
+  --tt-caret: #e6e6e6;
+}
+
+.ocean {
+  --tt-bg: #1b1f2a;
+  --tt-main: #4cc2ff;
+  --tt-text: #cdd6f4;
+  --tt-sub: #545a6e;
+  --tt-error: #f38ba8;
+  --tt-error-extra: #6e3b48;
+  --tt-caret: #4cc2ff;
+}
+
+.dracula {
+  --tt-bg: #282a36;
+  --tt-main: #bd93f9;
+  --tt-text: #f8f8f2;
+  --tt-sub: #6272a4;
+  --tt-error: #ff5555;
+  --tt-error-extra: #7a3535;
+  --tt-caret: #50fa7b;
+}
+
+/* Map shadcn component tokens onto the active typing palette. */
+:root,
+.serika,
+.light,
+.dark,
+.ocean,
+.dracula {
+  --background: var(--tt-bg);
+  --foreground: var(--tt-text);
+  --card: var(--tt-bg);
+  --card-foreground: var(--tt-text);
+  --popover: var(--tt-bg);
+  --popover-foreground: var(--tt-text);
+  --primary: var(--tt-main);
+  --primary-foreground: var(--tt-bg);
+  --secondary: color-mix(in srgb, var(--tt-sub) 25%, transparent);
+  --secondary-foreground: var(--tt-text);
+  --muted: color-mix(in srgb, var(--tt-sub) 20%, transparent);
+  --muted-foreground: var(--tt-sub);
+  --accent: color-mix(in srgb, var(--tt-sub) 30%, transparent);
+  --accent-foreground: var(--tt-text);
+  --destructive: var(--tt-error);
+  --border: color-mix(in srgb, var(--tt-sub) 35%, transparent);
+  --input: color-mix(in srgb, var(--tt-sub) 35%, transparent);
+  --ring: var(--tt-main);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-tt-bg text-tt-text;
+    font-feature-settings: "liga" 0;
+  }
+  html {
+    @apply font-mono;
+  }
+}
+
+@keyframes tt-blink {
+  0%,
+  40% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.caret-blink {
+  animation: tt-blink 1s infinite;
+}
