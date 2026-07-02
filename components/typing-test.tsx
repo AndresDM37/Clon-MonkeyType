@@ -128,6 +128,8 @@ export function TypingTest() {
             history={history}
             bestWpm={bestWpm}
             isNewRecord={isNewRecord}
+            language={language}
+            duration={duration}
           />
         ) : (
           <motion.div

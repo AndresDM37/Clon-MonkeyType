@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import type { Stats, WpmSample } from "@/lib/types";
+import type { Duration, Language, Stats, WpmSample } from "@/lib/types";
 import { WpmChart } from "./wpm-chart";
+import { ShareResults } from "./share-results";
 
 interface ResultsPanelProps {
   stats: Stats;
   history: WpmSample[];
   bestWpm: number;
   isNewRecord: boolean;
+  language: Language;
+  duration: Duration;
 }
 
 function easeOut(t: number) {
@@ -78,6 +81,8 @@ export function ResultsPanel({
   history,
   bestWpm,
   isNewRecord,
+  language,
+  duration,
 }: ResultsPanelProps) {
   const reduceMotion = useReducedMotion();
   return (
@@ -126,6 +131,8 @@ export function ResultsPanel({
           🏆 New personal best!
         </motion.span>
       )}
+
+      <ShareResults stats={stats} language={language} duration={duration} />
     </motion.div>
   );
 }

@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { SITE_URL } from "@/lib/share";
 
 const robotoMono = Roboto_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
 });
 
-const SITE_URL = "https://monkeytypeclon.netlify.app";
 const TITLE = "MonkeyType Clone — Test your typing speed";
 const DESCRIPTION =
   "A minimalist typing-speed test built with Next.js. Measure your WPM and accuracy in English or Spanish across multiple durations.";
