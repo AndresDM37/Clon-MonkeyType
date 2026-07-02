@@ -1,6 +1,7 @@
-import type { Duration, Language } from "@/lib/types";
+import { DURATIONS, type Duration, type Language, type Prefs } from "@/lib/types";
 
 const KEY_PREFIX = "monkeytype-clone:best";
+const PREFS_KEY = "monkeytype-clone:prefs";
 
 /** Best score is tracked per language + duration combination. */
 function bestScoreKey(language: Language, duration: Duration): string {
@@ -28,4 +29,25 @@ export function saveBestWpm(
   if (wpm <= current) return false;
   window.localStorage.setItem(bestScoreKey(language, duration), String(wpm));
   return true;
+}
+
+/** Read the persisted language/duration preferences, if any. */
+export function getPrefs(): Prefs | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(PREFS_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<Prefs>;
+    const language: Language = parsed.language === "es" ? "es" : "en";
+    const duration = DURATIONS.find((d) => d === parsed.duration);
+    if (!duration) return null;
+    return { language, duration };
+  } catch {
+    return null;
+  }
+}
+
+export function savePrefs(prefs: Prefs): void {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
 }

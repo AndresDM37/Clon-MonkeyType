@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import type { GameStatus } from "@/lib/types";
 import { Caret } from "./caret";
 
@@ -41,6 +41,7 @@ export function WordsDisplay({ words, typed, activeWord, status }: WordsDisplayP
   const anchorRef = useRef<HTMLSpanElement | null>(null);
   const [caret, setCaret] = useState<CaretRect>({ x: 0, y: 0, height: 0 });
   const [resizeTick, setResizeTick] = useState(0);
+  const reduceMotion = useReducedMotion();
 
   // Determine which letter the caret should anchor to in the active word.
   const target = words[activeWord] ?? "";
@@ -87,7 +88,11 @@ export function WordsDisplay({ words, typed, activeWord, status }: WordsDisplayP
         ref={contentRef}
         className="relative flex flex-wrap gap-x-3 gap-y-2 text-2xl leading-relaxed md:text-3xl"
         animate={{ y: -scrollY }}
-        transition={{ type: "spring", stiffness: 500, damping: 60, mass: 0.5 }}
+        transition={
+          reduceMotion
+            ? { duration: 0 }
+            : { type: "spring", stiffness: 500, damping: 60, mass: 0.5 }
+        }
       >
         {caret.height > 0 && (
           <Caret

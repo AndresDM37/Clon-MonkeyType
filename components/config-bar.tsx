@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { DURATIONS, type Duration, type Language } from "@/lib/types";
 import { LANGUAGES } from "@/lib/words";
@@ -58,10 +58,11 @@ export function ConfigBar({
   onDurationChange,
   hidden,
 }: ConfigBarProps) {
+  const reduceMotion = useReducedMotion();
   return (
     <motion.div
       animate={{ opacity: hidden ? 0 : 1, y: hidden ? -8 : 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: reduceMotion ? 0 : 0.2 }}
       className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 rounded-lg bg-tt-sub/15 px-3 py-2 text-sm"
       style={{ pointerEvents: hidden ? "none" : "auto" }}
     >

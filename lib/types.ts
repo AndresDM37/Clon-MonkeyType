@@ -17,3 +17,17 @@ export interface Stats {
   incorrectChars: number;
   totalChars: number;
 }
+
+/** A per-second snapshot of the run, used to draw the results chart. */
+export interface WpmSample {
+  /** Elapsed seconds since the test started. */
+  t: number;
+  wpm: number;
+  raw: number;
+}
+
+/** User preferences persisted between sessions. */
+export interface Prefs {
+  language: Language;
+  duration: Duration;
+}

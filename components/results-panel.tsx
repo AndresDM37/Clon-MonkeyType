@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "motion/react";
-import type { Stats } from "@/lib/types";
+import { motion, useReducedMotion } from "motion/react";
+import type { Stats, WpmSample } from "@/lib/types";
+import { WpmChart } from "./wpm-chart";
 
 interface ResultsPanelProps {
   stats: Stats;
+  history: WpmSample[];
   bestWpm: number;
   isNewRecord: boolean;
 }
@@ -16,9 +18,15 @@ function easeOut(t: number) {
 
 /** Counts up to `value` once on mount for a satisfying reveal. */
 function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string }) {
-  const [display, setDisplay] = useState(0);
+  const reduceMotion = useReducedMotion();
+  const [display, setDisplay] = useState(reduceMotion ? value : 0);
 
   useEffect(() => {
+    if (reduceMotion) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setDisplay(value);
+      return;
+    }
     const duration = 700;
     let raf = 0;
     let startTime: number | undefined;
@@ -30,7 +38,7 @@ function AnimatedNumber({ value, suffix = "" }: { value: number; suffix?: string
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [value]);
+  }, [value, reduceMotion]);
 
   return (
     <>
@@ -65,14 +73,20 @@ function Stat({
   );
 }
 
-export function ResultsPanel({ stats, bestWpm, isNewRecord }: ResultsPanelProps) {
+export function ResultsPanel({
+  stats,
+  history,
+  bestWpm,
+  isNewRecord,
+}: ResultsPanelProps) {
+  const reduceMotion = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -16 }}
-      transition={{ duration: 0.35, ease: "easeOut" }}
-      className="flex flex-col items-center gap-8"
+      exit={reduceMotion ? undefined : { opacity: 0, y: -16 }}
+      transition={{ duration: reduceMotion ? 0 : 0.35, ease: "easeOut" }}
+      className="flex w-full flex-col items-center gap-8"
     >
       <div className="flex flex-wrap items-end justify-center gap-x-12 gap-y-6">
         <Stat label="wpm" big>
@@ -81,6 +95,10 @@ export function ResultsPanel({ stats, bestWpm, isNewRecord }: ResultsPanelProps)
         <Stat label="accuracy" big>
           <AnimatedNumber value={stats.accuracy} suffix="%" />
         </Stat>
+      </div>
+
+      <div className="w-full max-w-2xl">
+        <WpmChart history={history} />
       </div>
 
       <div className="flex flex-wrap items-end justify-center gap-x-10 gap-y-4">

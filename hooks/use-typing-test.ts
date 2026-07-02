@@ -1,9 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useReducer } from "react";
-import type { Duration, GameStatus, Language, Stats } from "@/lib/types";
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  type FormEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
+import type {
+  Duration,
+  GameStatus,
+  Language,
+  Stats,
+  WpmSample,
+} from "@/lib/types";
 import { computeStats, generateWords } from "@/lib/typing";
-import { getBestWpm, saveBestWpm } from "@/lib/storage";
+import { getBestWpm, getPrefs, saveBestWpm, savePrefs } from "@/lib/storage";
 
 const INITIAL_WORD_COUNT = 60;
 const REFILL_WHEN_REMAINING = 15;
@@ -21,6 +34,7 @@ interface State {
   typed: string[];
   activeWord: number;
   stats: Stats | null;
+  history: WpmSample[];
   bestWpm: number;
   isNewRecord: boolean;
 }
@@ -46,18 +60,9 @@ function createInitialState(language: Language, duration: Duration): State {
     typed: [""],
     activeWord: 0,
     stats: null,
+    history: [],
     bestWpm: 0,
     isNewRecord: false,
-  };
-}
-
-function finish(state: State): State {
-  const elapsed = state.duration - state.timeLeft || state.duration;
-  return {
-    ...state,
-    status: "finished",
-    timeLeft: 0,
-    stats: computeStats(state.words, state.typed, elapsed),
   };
 }
 
@@ -129,8 +134,24 @@ function reducer(state: State, action: Action): State {
 
     case "tick": {
       if (state.status !== "running") return state;
-      if (state.timeLeft <= 1) return finish({ ...state, timeLeft: 0 });
-      return { ...state, timeLeft: state.timeLeft - 1 };
+      const timeLeft = Math.max(0, state.timeLeft - 1);
+      const elapsed = state.duration - timeLeft;
+      const snapshot = computeStats(state.words, state.typed, elapsed);
+      const history = [
+        ...state.history,
+        { t: elapsed, wpm: snapshot.wpm, raw: snapshot.rawWpm },
+      ];
+
+      if (timeLeft <= 0) {
+        return {
+          ...state,
+          status: "finished",
+          timeLeft: 0,
+          history,
+          stats: computeStats(state.words, state.typed, state.duration),
+        };
+      }
+      return { ...state, timeLeft, history };
     }
 
     case "record":
@@ -151,6 +172,7 @@ export function useTypingTest(
   );
 
   const { status, language, duration, words, activeWord } = state;
+  const hydrated = useRef(false);
 
   /** Regenerate words and start a fresh test with the current config. */
   const restart = useCallback(() => {
@@ -191,31 +213,21 @@ export function useTypingTest(
     });
   }, [status, state.stats, language, duration]);
 
-  // Global keyboard handling.
+  // Load saved language/duration preferences once, on mount.
   useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.metaKey || event.altKey) return;
-      if (state.status === "finished") return;
-      // Don't hijack keys while a button (e.g. theme switch) is focused.
-      const target = event.target as HTMLElement | null;
-      if (target?.closest("button, a, input, textarea, select")) return;
-
-      const { key } = event;
-      if (key === " ") {
-        event.preventDefault();
-        dispatch({ type: "space" });
-      } else if (key === "Backspace") {
-        event.preventDefault();
-        dispatch({ type: "backspace", whole: event.ctrlKey });
-      } else if (key.length === 1 && !event.ctrlKey) {
-        event.preventDefault();
-        dispatch({ type: "char", char: key });
-      }
+    const prefs = getPrefs();
+    if (prefs) {
+      dispatch({ type: "setLanguage", language: prefs.language });
+      dispatch({ type: "setDuration", duration: prefs.duration });
     }
+    hydrated.current = true;
+  }, []);
 
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [state.status]);
+  // Persist preferences on change (after the initial hydration).
+  useEffect(() => {
+    if (!hydrated.current) return;
+    savePrefs({ language, duration });
+  }, [language, duration]);
 
   const setLanguage = useCallback(
     (next: Language) => dispatch({ type: "setLanguage", language: next }),
@@ -225,6 +237,41 @@ export function useTypingTest(
     (next: Duration) => dispatch({ type: "setDuration", duration: next }),
     [],
   );
+
+  // --- Input handling -------------------------------------------------------
+  // Desktop: physical keys via onKeyDown. Mobile: soft-keyboard edits via
+  // onInput (keydown is unreliable there). preventDefault on handled keys keeps
+  // the two paths from double-counting the same character.
+  const handleKeyDown = useCallback((event: ReactKeyboardEvent<HTMLInputElement>) => {
+    if (event.metaKey || event.altKey) return;
+    const { key } = event;
+    if (key === " ") {
+      event.preventDefault();
+      dispatch({ type: "space" });
+    } else if (key === "Backspace") {
+      event.preventDefault();
+      dispatch({ type: "backspace", whole: event.ctrlKey });
+    } else if (key.length === 1 && !event.ctrlKey) {
+      event.preventDefault();
+      dispatch({ type: "char", char: key });
+    }
+  }, []);
+
+  const handleInput = useCallback((event: FormEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const inputType = (event.nativeEvent as InputEvent).inputType ?? "";
+    const value = input.value;
+    input.value = ""; // consume the edit; state is the source of truth
+
+    if (inputType.startsWith("delete")) {
+      dispatch({ type: "backspace", whole: false });
+      return;
+    }
+    for (const ch of value) {
+      if (ch === " ") dispatch({ type: "space" });
+      else dispatch({ type: "char", char: ch });
+    }
+  }, []);
 
   const elapsed = duration - state.timeLeft;
   const liveWpm =
@@ -238,5 +285,7 @@ export function useTypingTest(
     setLanguage,
     setDuration,
     restart,
+    handleKeyDown,
+    handleInput,
   };
 }

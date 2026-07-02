@@ -8,16 +8,29 @@ const robotoMono = Roboto_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://monkeytypeclon.netlify.app";
+const TITLE = "MonkeyType Clone — Test your typing speed";
+const DESCRIPTION =
+  "A minimalist typing-speed test built with Next.js. Measure your WPM and accuracy in English or Spanish across multiple durations.";
+
 export const metadata: Metadata = {
-  title: "MonkeyType Clone — Test your typing speed",
-  description:
-    "A minimalist typing-speed test built with Next.js. Measure your WPM and accuracy in English or Spanish across multiple durations.",
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
   keywords: ["typing test", "wpm", "monkeytype", "mecanografía", "typing speed"],
+  alternates: { canonical: "/" },
+  robots: { index: true, follow: true },
   openGraph: {
-    title: "MonkeyType Clone — Test your typing speed",
-    description:
-      "Measure your typing speed (WPM) and accuracy in English or Spanish.",
+    title: TITLE,
+    description: DESCRIPTION,
+    url: SITE_URL,
+    siteName: "MonkeyType Clone",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
   },
 };
 
